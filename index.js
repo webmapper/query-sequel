@@ -10,7 +10,7 @@ function processQuery(req, res, next) {
     if (queryIsInsane(req.query,req.path)) {
         res.send('this is insane');
     } else {
-        req.processedQuery = queries(req.query, req.path);
+        req.processedQuery = queries(req.query);
         next();
     }
 };

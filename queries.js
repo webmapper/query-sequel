@@ -22,6 +22,12 @@ function setDefaultParams(params) {
     if (!params.date) {
         params.date = '2015-06-30';
     };
+	if (!params.summarize) {
+		params.summarize = false
+	}
+	if (params.agg) {
+		params.summarize = params.agg
+	}
     return params;
 
 }
@@ -31,25 +37,12 @@ function buildQuery(params, path) {
     //then compose the query based on params.
     //how to do it elegantly?
     params = setDefaultParams(params);
-    console.log('haHA');
-    console.log(path);
     var c = defs.combined;
     //query is parameterized, with 'text' and 'values'.
     var query;
     //'/buurt' can now only take one.
     // could create JSON structures, nested, and return those, but that's more complicated.
-    if (path === '/buurt') {
-        query = c.select(c.date,c.bu_code,c.name, c.dumps, c.fillperc).from(c);
-        if(params.start && params.end) {
-            query.where((c.date).gte(params.start),(c.date).lte(params.end));
-        } else if (params.date) {
-            query.where((c.date).equals(params.date));
-        }
-        if (params.name) {
-            query.where({name:params.name});
-        }
-
-    } else if (path === '/buurten') {
+	if (params.summarize === 'true') {
         query = c.select(c.bu_code,c.name,sql.functions.SUM(c.dumps).as('dumps'),sql.functions.AVG(c.fillperc).as('fillperc'))
         .from(c);
         if(params.start && params.end) {
@@ -62,8 +55,20 @@ function buildQuery(params, path) {
         }
         query.group(c.name, c.bu_code);
     }
-    console.log('DEBUG: QUERY COMPOSITION');
-    console.log(query.toQuery());
+    else {
+        query = c.select(c.date,c.bu_code,c.name, c.dumps, c.fillperc).from(c);
+        if(params.start && params.end) {
+            query.where((c.date).gte(params.start),(c.date).lte(params.end));
+        } else if (params.date) {
+            query.where((c.date).equals(params.date));
+        }
+        if (params.name) {
+            query.where({name:params.name});
+        }
+
+    }
+    //console.log('DEBUG: QUERY COMPOSITION');
+    //console.log(query.toQuery());
     return query.toQuery();
 
 }
